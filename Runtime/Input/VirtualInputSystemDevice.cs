@@ -231,12 +231,29 @@ public struct DIJOYSTATE2State : IInputStateTypeInfo
     [InputControl(name = "FRZ", layout = "Axis", displayName = "Z Torque")]
     public ushort lFRz; // Z-axis torque
 
-
-
-
-    // DWORD rgdwPOV[4];
-    
-    
+    // rgdwPOV Broken out
+    // DWORD rgdwPOV[4]; // 4 PoV Hats
+    [InputControl(name = "dpad0", layout = "Dpad", bit = 0, sizeInBits = 4, displayName="Dpad0")]
+    [InputControl(name = "dpad0/up",    bit = 0, displayName="Up")]
+    [InputControl(name = "dpad0/down",  bit = 1, displayName="Down")]
+    [InputControl(name = "dpad0/left",  bit = 2, displayName="Left")]
+    [InputControl(name = "dpad0/right", bit = 3, displayName="Right")]
+    [InputControl(name = "dpad1", layout = "Dpad", bit = 4, sizeInBits = 4, displayName="Dpad1")]
+    [InputControl(name = "dpad1/up",    bit = 4, displayName="Up")]
+    [InputControl(name = "dpad1/down",  bit = 5, displayName="Down")]
+    [InputControl(name = "dpad1/left",  bit = 6, displayName="Left")]
+    [InputControl(name = "dpad1/right", bit = 7, displayName="Right")]
+    [InputControl(name = "dpad2", layout = "Dpad", bit = 0, sizeInBits = 4, displayName="Dpad2")]
+    [InputControl(name = "dpad2/up",    bit = 8, displayName="Up")]
+    [InputControl(name = "dpad2/down",  bit = 9, displayName="Down")]
+    [InputControl(name = "dpad2/left",  bit = 10, displayName="Left")]
+    [InputControl(name = "dpad2/right", bit = 11, displayName="Right")]
+    [InputControl(name = "dpad3", layout = "Dpad", bit = 4, sizeInBits = 4, displayName="Dpad3")]
+    [InputControl(name = "dpad3/up",    bit = 12, displayName="Up")]
+    [InputControl(name = "dpad3/down",  bit = 13, displayName="Down")]
+    [InputControl(name = "dpad3/left",  bit = 14, displayName="Left")]
+    [InputControl(name = "dpad3/right", bit = 15, displayName="Right")]
+    public short rgdwPOV; // Store each DPAD in chunks of 4 bits inside 16-bit short     
     
 }
 
@@ -308,7 +325,7 @@ public class DirectInputDevice : InputDevice, IInputUpdateCallbackReceiver{
 
         UnityFFB.DIJOYSTATE2 DeviceState = new UnityFFB.DIJOYSTATE2(); // Store the raw state of the device
         int hresult = UnityFFB.UnityFFBNative.GetDeviceState(ref DeviceState); // Fetch the device state
-        if(hresult!=0){ Debug.LogError($"[DirectInputFFB] GetDeviceState : 0x{hresult.ToString("x")} {UnityFFB.WinErrors.GetSystemMessage(hresult)}\n[DirectInputFFB] Perhaps the device has not been attached/acquired"); }
+        // if(hresult!=0){ Debug.LogError($"[DirectInputFFB] GetDeviceState : 0x{hresult.ToString("x")} {UnityFFB.WinErrors.GetSystemMessage(hresult)}\n[DirectInputFFB] Perhaps the device has not been attached/acquired"); }
 
 
         for (int i = 0; i < 64; i++){ // In banks of 64, shift in the sate of each button BankA 0-63
@@ -366,12 +383,14 @@ public class DirectInputDevice : InputDevice, IInputUpdateCallbackReceiver{
         state.lFRy = (ushort)DeviceState.lFRy; // Y-axis torque
         state.lFRz = (ushort)DeviceState.lFRz; // Z-axis torque
 
-        /*
-// rglSlider
-// rglVSlider
-// rglASlider
-// rglFSlider
-        */
+        for (int i = 0; i < 4; i++){ // In banks of 4, shift in the sate of each DPAD 0-16 bits
+            switch(DeviceState.rgdwPOV[i]){
+                case 0:     state.rgdwPOV |= (byte)(1 << ((i+1)*0));break; // dpad0/up, bit = 0     shift into value at stride (i+1) * DPADButton
+                case 18000: state.rgdwPOV |= (byte)(1 << ((i+1)*1));break; // dpad0/down, bit = 1
+                case 27000: state.rgdwPOV |= (byte)(1 << ((i+1)*2));break; // dpad0/left, bit = 2
+                case 9000:  state.rgdwPOV |= (byte)(1 << ((i+1)*3));break; // dpad0/right, bit = 3
+            }
+        }
 
         InputSystem.QueueStateEvent(this, state);
     }
