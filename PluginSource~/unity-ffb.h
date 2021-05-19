@@ -77,4 +77,5 @@ extern "C"
    UNITYFFB_API void StartAllFFBEffects();
    UNITYFFB_API void StopAllFFBEffects();
    UNITYFFB_API void StopDirectInput();
+   UNITYFFB_API HRESULT GetDeviceState(DIJOYSTATE2 &m_deviceState);
 }

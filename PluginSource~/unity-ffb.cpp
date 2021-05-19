@@ -122,7 +122,7 @@ HRESULT CreateFFBDevice(LPCSTR guidInstance)
    }
 
    // Not sure if this is necessary.
-   if (FAILED(hr = pDevice->SetDataFormat(&c_dfDIJoystick)))
+   if (FAILED(hr = pDevice->SetDataFormat(&c_dfDIJoystick2)))
    {
       return hr;
    }
@@ -541,4 +541,14 @@ void StopDirectInput()
    FreeDirectInput();
    ClearDeviceAxes();
    ClearDeviceInstances();
+}
+
+HRESULT GetDeviceState(DIJOYSTATE2& m_deviceState) {
+  HRESULT hr = E_FAIL;
+
+  if (g_pDevice != NULL) { // We have an active device
+    hr = g_pDevice->GetDeviceState(sizeof(DIJOYSTATE2), (void*)&m_deviceState);
+  }
+
+  return hr;
 }
