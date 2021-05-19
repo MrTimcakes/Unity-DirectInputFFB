@@ -16,5 +16,10 @@
     "wheel",
     "peripheral"
   ],
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "com.unity.inputsystem": "1.0.2"
+  },
+  "hideInEditor": false,
+  "unityRelease": "7f1"
 }
