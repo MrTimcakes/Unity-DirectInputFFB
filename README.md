@@ -1,49 +1,52 @@
-# Unity Force Feedback
+# Unity DirectInput Force Feedback
+<!-- [![Version](https://img.shields.io/VERSIONPLATFORM/MrTimcakes/XXXXXXX.svg?style=flat-square)](LINK TO UNITY HERE) -->
 
-This is a native plugin for Unity3D that interfaces with DirectInput in order
-to send Force Feedback Effects to devices.
+[![Made with Unity](https://img.shields.io/badge/Made%20with-Unity-57b9d3.svg?style=for-the-badge&logo=unity)](https://unity3d.com)
+![GitHub issues](https://img.shields.io/github/issues/MrTimcakes/Monch-Native?style=for-the-badge)
 
-The primary goal of this plugin is to get Force Feedback effects working
-with various steering wheels (Logitech, Fanatec, etc) for my hydroplane
-racing sim (http://www.hydrosimracing.com).
+This package allows you to easily integrate both the input and ForceFeedback features of DirectX from within Unity. This allows you to interface with HID peripherals with ForceFeedback capabilities. This can be used to build vivid simulated experiences.
 
-#### Current limitations
+The package will create a virtual device inside Unity's Input System. This device can then be used like any other device inside the Input System, allowing for easiy rebinding. 
 
-1. Currently only supports one FFB device at a time.
-2. Only supports Constant Force and Spring Condition.
-3. Should support devices with up to 6 axes. I've only tested devices that
-   support 1 axis though.
-4. Currently only supports 1 Effect of each type per device.
+## Quick Start
 
-#### Compatible Devices
+### Installation
 
-Has only been tested with Steering Wheels.
+This package requires use of Unity's new Input System, ensure [com.unity.inputsystem](https://docs.unity3d.com/Packages/com.unity.inputsystem@1.0/manual/QuickStartGuide.html) is installed in the project. Install it via the package manager via: 
 
-Tested with Fanatec Forza CSR, Fanatec CSL base, and should work with any other
-Fanatec wheel base.
+`Window -> Package Manager => Input System`
 
-Logitech G29 and G920 are tested and working.
+Next, install this package:
 
-#### Environment
+`Package Manager => + => "Add package from git URL..." => ` `https://github.com/MrTimcakes/Unity-DirectInputFFB.git` 
+
+
+## Compatible Devices
+
+| Peripheral                         | Test Status    |
+|------------------------------------|----------------|
+| Fanatec CSL Elite                  | ✅ Verified    |
+| Fanatec WRC Wheel Rim              | ✅ Verified    |
+| Fanatec CSL LC Pedals              | ✅ Verified    |
+| Fanatec ClubSport Shifter SQ V 1.5 | ✅ Verified    |
+| Logitech G29                       | 🔲 Untested    |
+
+## Current limitations
+
+1. Architected in a way to only support 1 controller.
+2. Currently only supports 1 Effect of each type per device.
+3. Only supports Constant Force and Spring Condition.
+
+## Environment
 
 This plugin only works on Windows 64 bit.
 
-Has only been tested with Unity 2018.4, but should work with newer versions.
+Unity Version: 2021.1.7f1
 
-#### UPM Support
+# Support
 
-This package can be installed via Unity Package Manager.
+If you're having any problem, please [raise an issue](https://github.com/MrTimcakes/Unity-DirectInputFFB/issues/new) on GitHub.
 
-For Unity 2018.4, you'll need to manually add the git repo to your manifest.json
+## License
 
-```json
-{
-    "dependencies": {
-        "com.skaughtx0r.unityffb": "https://github.com/skaughtx0r/unity-ffb.git",
-    }
-}
-```
-
-For Unity 2019 and greater, you can add git packages via the Package Manager
-GUI. Just click the `+` and "Add package from git url...", then paste the URL:
-`https://github.com/skaughtx0r/unity-ffb.git`
+This repo is a Fork of [Unity-FFB](https://github.com/skaughtx0r/unity-ffb) and thus is released under the MIT License, further information can be found under the terms specified in the [license](https://github.com/MrTimcakes/Unity-DirectInputFFB/blob/master/LICENSE).
