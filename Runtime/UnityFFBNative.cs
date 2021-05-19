@@ -42,6 +42,13 @@ namespace UnityFFB
 
         [DllImport("UNITYFFB")]
         public static extern void StopDirectInput();
+
+        [DllImport("UNITYFFB")]
+        public static extern int PollDevice();
+        
+        [DllImport("UNITYFFB")]
+        public static extern int GetDeviceState(ref DIJOYSTATE2 DeviceStateObj);
+        
 #endif
     }
 }

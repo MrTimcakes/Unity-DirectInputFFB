@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Linq;
+using System.Collections;
+using System.Reflection;
 using UnityEngine;
 
 namespace UnityFFB
@@ -45,9 +49,12 @@ namespace UnityFFB
         public DeviceAxisInfo[] axes = new DeviceAxisInfo[0];
         public DICondition[] springConditions = new DICondition[0];
 
+        public DIJOYSTATE2 DeviceState;
+
+        public System.Collections.Generic.List<string> test;
+
 #if UNITY_STANDALONE_WIN
-        void Awake()
-        {
+        void Awake(){
             instance = this;
 
             if (enableOnAwake)
@@ -62,11 +69,11 @@ namespace UnityFFB
             {
                 UnityFFBNative.UpdateConstantForce((int)(force * sensitivity), axisDirections);
             }
+            // DebugFunc1();
         }
 #endif
 
-        public void EnableForceFeedback()
-        {
+        public void EnableForceFeedback(){
 #if UNITY_STANDALONE_WIN
             if (ffbEnabled)
             {
@@ -112,8 +119,7 @@ namespace UnityFFB
 #endif
         }
 
-        public void DisableForceFeedback()
-        {
+        public void DisableForceFeedback(){
 #if UNITY_STANDALONE_WIN
             UnityFFBNative.StopDirectInput();
             ffbEnabled = false;
@@ -125,8 +131,7 @@ namespace UnityFFB
 #endif
         }
 
-        public void SelectDevice(string deviceGuid)
-        {
+        public void SelectDevice(string deviceGuid){
 #if UNITY_STANDALONE_WIN
             // For now just initialize the first FFB Device.
             int hresult = UnityFFBNative.CreateFFBDevice(deviceGuid);
@@ -216,8 +221,7 @@ namespace UnityFFB
 #endif
         }
 
-        public void SetConstantForceGain(float gainPercent)
-        {
+        public void SetConstantForceGain(float gainPercent){
 #if UNITY_STANDALONE_WIN
             if (constantForceEnabled)
             {
@@ -227,16 +231,14 @@ namespace UnityFFB
 #endif
         }
 
-        public void StartFFBEffects()
-        {
+        public void StartFFBEffects(){
 #if UNITY_STANDALONE_WIN
             UnityFFBNative.StartAllFFBEffects();
             constantForceEnabled = true;
 #endif
         }
 
-        public void StopFFBEffects()
-        {
+        public void StopFFBEffects(){
 #if UNITY_STANDALONE_WIN
             UnityFFBNative.StopAllFFBEffects();
             constantForceEnabled = false;
@@ -244,10 +246,71 @@ namespace UnityFFB
         }
 
 #if UNITY_STANDALONE_WIN
-        public void OnApplicationQuit()
-        {
+        public void OnApplicationQuit(){
             DisableForceFeedback();
         }
 #endif
+        [ContextMenu("GetState")]
+        public void DebugFunc1(){
+            DIJOYSTATE2 prevDeviceState = DeviceState;
+            int hresult = UnityFFBNative.GetDeviceState(ref DeviceState);
+            if(hresult!=0){ Debug.LogError($"[UnityFFB] GetDeviceState : 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}"); }
+
+            test = Compare(DeviceState, prevDeviceState);
+
+            // FieldInfo[] fields = DeviceState.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+            // foreach (FieldInfo fi in fields) {
+            //     object value = fi.GetValue(DeviceState);
+            //     // Debug.Log(value.ToString());
+            //     if(value.ToString().EndsWith("[]")) {
+            //         Type t = value.GetType();
+            //         Debug.Log($"{fi.Name} = {value}");
+            //         // var isEqual = DeviceState[fi.Name].SequenceEqual(prevDeviceState[fi.Name]);
+            //         // IStructuralEquatable se1 = DeviceState;
+            //         // var isEqual = se1.Equals (prevDeviceState, StructuralComparisons.StructuralEqualityComparer);
+            //         // Debug.Log(isEqual);
+            //         //System.Diagnostics.Debug.WriteLine(fi.Name);
+            //         //System.Diagnostics.Debugger.Break();
+            //     } else {
+            //         // Debug.Log($"{fi.Name} = {value}");
+            //     }
+            // }
+            // var json = JsonUtility.ToJson(DeviceState);
+            // Debug.Log(json);
+            // Debug.Log("Test2");
+            // Debug.Log(json);
+
+        }
+
+        [ContextMenu("GetState2")]
+        public void DebugFunc2(){
+            DIJOYSTATE2 prevDeviceState = DeviceState;
+            int hresult = UnityFFBNative.GetDeviceState(ref DeviceState);
+            if(hresult!=0){ Debug.LogError($"[UnityFFB] GetDeviceState : 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}"); }
+
+            var DEV = DEVCompare(DeviceState, prevDeviceState);
+            Debug.Log( DEV );
+        }
+
+        public List<string> DEVCompare(DIJOYSTATE2 x, DIJOYSTATE2 y) {
+            Debug.Log( x.GetType().GetFields() );
+            return (  
+            from l1 in x.GetType().GetFields()  
+            join l2 in y.GetType().GetFields() on l1.Name equals l2.Name  
+            where !l1.GetValue(x).Equals(l2.GetValue(y))  
+            select string.Format("{0} {1} {2}", l1.Name, l1.GetValue(x), l2.GetValue(y))  
+            ).ToList(); 
+        }
+
+        public List<string> Compare(DIJOYSTATE2 x, DIJOYSTATE2 y) {  
+            return (  
+            from l1 in x.GetType().GetFields()  
+            join l2 in y.GetType().GetFields() on l1.Name equals l2.Name  
+            where !l1.GetValue(x).Equals(l2.GetValue(y))  
+            select string.Format("{0} {1} {2}", l1.Name, l1.GetValue(x), l2.GetValue(y))  
+            ).ToList();
+        }
+
+
     }
 }

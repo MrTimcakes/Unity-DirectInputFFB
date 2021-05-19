@@ -107,4 +107,50 @@ namespace UnityFFB
         /// </summary>
         public int deadband;
     }
+
+    /// <summary>
+    /// Describes the state of a joystick device with extended capabilities.
+    /// See https://docs.microsoft.com/en-us/previous-versions/windows/desktop/ee416628(v=vs.85)
+    /// </summary>
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct DIJOYSTATE2
+    {
+        public int lX;
+        public int lY;
+        public int lZ;
+        public int lRx;
+        public int lRy;
+        public int lRz;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
+        public int[] rglSlider;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        public int[] rgdwPOV;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 128)]
+        public byte[] rgbButtons;
+        public int lVX;
+        public int lVY;
+        public int lVZ;
+        public int lVRx;
+        public int lVRy;
+        public int lVRz;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
+	    public int[] rglVSlider;
+        public int lAX;
+        public int lAY;
+        public int lAZ;
+        public int lARx;
+        public int lARy;
+        public int lARz;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
+	    public int[] rglASlider;
+        public int lFX;
+        public int lFY;
+        public int lFZ;
+        public int lFRx;
+        public int lFRy;
+        public int lFRz;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
+	    public int[] rglFSlider;
+    }
 }
