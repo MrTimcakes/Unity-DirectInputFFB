@@ -1,2 +1,2 @@
-#define UNITYFFB_API __declspec(dllexport)
-#define UNITYFFB_API __declspec(dllimport)
+#define UNITYDIRECTINPTFFB_API __declspec(dllexport)
+#define UNITYDIRECTINPTFFB_API __declspec(dllimport)

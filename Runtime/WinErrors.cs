@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace UnityFFB
-{
+namespace DirectInputFFB {
     /// <summary>
     /// Helper class to print out user friendly system error codes.
     /// 
     /// Taken from: https://stackoverflow.com/a/21174331/9053848
     /// 
     /// </summary>
-    public static class WinErrors
-    {
+    public static class WinErrors {
         #region definitions
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern IntPtr LocalFree(IntPtr hMem);
@@ -19,8 +17,7 @@ namespace UnityFFB
         static extern int FormatMessage(FormatMessageFlags dwFlags, IntPtr lpSource, uint dwMessageId, uint dwLanguageId, ref IntPtr lpBuffer, uint nSize, IntPtr Arguments);
 
         [Flags]
-        private enum FormatMessageFlags : uint
-        {
+        private enum FormatMessageFlags : uint {
             FORMAT_MESSAGE_ALLOCATE_BUFFER = 0x00000100,
             FORMAT_MESSAGE_IGNORE_INSERTS = 0x00000200,
             FORMAT_MESSAGE_FROM_SYSTEM = 0x00001000,
@@ -35,10 +32,8 @@ namespace UnityFFB
         /// </summary>
         /// <param name="errorCode">System error code</param>
         /// <returns>Error string</returns>
-        public static string GetSystemMessage(int errorCode)
-        {
-            try
-            {
+        public static string GetSystemMessage(int errorCode) {
+            try {
                 IntPtr lpMsgBuf = IntPtr.Zero;
 
                 int dwChars = FormatMessage(
@@ -49,8 +44,7 @@ namespace UnityFFB
                     ref lpMsgBuf,
                     0,
                     IntPtr.Zero);
-                if (dwChars == 0)
-                {
+                if (dwChars == 0) {
                     // Handle the error.
                     int le = Marshal.GetLastWin32Error();
                     return "Unable to get error code string from System - Error " + le.ToString();
@@ -61,9 +55,7 @@ namespace UnityFFB
                 // Free the buffer.
                 lpMsgBuf = LocalFree(lpMsgBuf);
                 return sRet;
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 return "Unable to get error code string from System -> " + e.ToString();
             }
         }

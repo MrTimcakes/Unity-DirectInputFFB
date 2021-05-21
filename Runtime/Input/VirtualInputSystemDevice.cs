@@ -15,8 +15,7 @@ using UnityEditor;
 /// Breaks out RGLSlider-s into U and V axis
 /// See https://docs.microsoft.com/en-us/previous-versions/windows/desktop/ee416628(v=vs.85)
 /// </summary>
-public struct DIJOYSTATE2State : IInputStateTypeInfo
-{
+public struct DIJOYSTATE2State : IInputStateTypeInfo {
     public FourCC format => new FourCC('D', 'F', 'F', 'B');
 
     [InputControl(name="Button000", layout="Button", bit=0, displayName="0")]
@@ -323,9 +322,9 @@ public class DirectInputDevice : InputDevice, IInputUpdateCallbackReceiver{
     public void OnUpdate(){
         var state = new DIJOYSTATE2State();
 
-        UnityFFB.DIJOYSTATE2 DeviceState = new UnityFFB.DIJOYSTATE2(); // Store the raw state of the device
-        int hresult = UnityFFB.UnityFFBNative.GetDeviceState(ref DeviceState); // Fetch the device state
-        // if(hresult!=0){ Debug.LogError($"[DirectInputFFB] GetDeviceState : 0x{hresult.ToString("x")} {UnityFFB.WinErrors.GetSystemMessage(hresult)}\n[DirectInputFFB] Perhaps the device has not been attached/acquired"); }
+        DirectInputFFB.DIJOYSTATE2 DeviceState = new DirectInputFFB.DIJOYSTATE2(); // Store the raw state of the device
+        int hresult = DirectInputFFB.Native.GetDeviceState(ref DeviceState); // Fetch the device state
+        // if(hresult!=0){ Debug.LogError($"[DirectInputFFB] GetDeviceState : 0x{hresult.ToString("x")} {DirectInputFFB.WinErrors.GetSystemMessage(hresult)}\n[DirectInputFFB] Perhaps the device has not been attached/acquired"); }
 
 
         for (int i = 0; i < 64; i++){ // In banks of 64, shift in the sate of each button BankA 0-63

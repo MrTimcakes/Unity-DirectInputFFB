@@ -1,9 +1,9 @@
 #include "pch.h"
 
-#ifdef UNITYFFB_EXPORTS
-#define UNITYFFB_API __declspec(dllexport)
+#ifdef UNITYDIRECTINPTFFB_EXPORTS
+#define UNITYDIRECTINPTFFB_API __declspec(dllexport)
 #else
-#define UNITYFFB_API __declspec(dllimport)
+#define UNITYDIRECTINPTFFB_API __declspec(dllimport)
 #endif
 
 #define SAFE_DELETE(p)  { if(p) { delete (p);     (p)=NULL; } }
@@ -65,17 +65,17 @@ extern "C"
       } Type;
    };
 
-   UNITYFFB_API HRESULT StartDirectInput();
-   UNITYFFB_API DeviceInfo* EnumerateFFBDevices(int &deviceCount);
-   UNITYFFB_API HRESULT CreateFFBDevice(LPCSTR guidInstance);
-   UNITYFFB_API DeviceAxisInfo* EnumerateFFBAxes(int &axisCount);
-   UNITYFFB_API HRESULT AddFFBEffect(Effects::Type effectType);
-   UNITYFFB_API HRESULT UpdateEffectGain(Effects::Type effectType, float gainPercent);
-   UNITYFFB_API HRESULT UpdateConstantForce(LONG magnitude, LONG* directions);
-   UNITYFFB_API HRESULT UpdateSpring(DICONDITION* conditions);
-   UNITYFFB_API HRESULT SetAutoCenter(bool autoCenter);
-   UNITYFFB_API void StartAllFFBEffects();
-   UNITYFFB_API void StopAllFFBEffects();
-   UNITYFFB_API void StopDirectInput();
-   UNITYFFB_API HRESULT GetDeviceState(DIJOYSTATE2 &m_deviceState);
+   UNITYDIRECTINPTFFB_API HRESULT StartDirectInput();
+   UNITYDIRECTINPTFFB_API DeviceInfo* EnumerateFFBDevices(int &deviceCount);
+   UNITYDIRECTINPTFFB_API HRESULT CreateFFBDevice(LPCSTR guidInstance);
+   UNITYDIRECTINPTFFB_API DeviceAxisInfo* EnumerateFFBAxes(int &axisCount);
+   UNITYDIRECTINPTFFB_API HRESULT AddFFBEffect(Effects::Type effectType);
+   UNITYDIRECTINPTFFB_API HRESULT UpdateEffectGain(Effects::Type effectType, float gainPercent);
+   UNITYDIRECTINPTFFB_API HRESULT UpdateConstantForce(LONG magnitude, LONG* directions);
+   UNITYDIRECTINPTFFB_API HRESULT UpdateSpring(DICONDITION* conditions);
+   UNITYDIRECTINPTFFB_API HRESULT SetAutoCenter(bool autoCenter);
+   UNITYDIRECTINPTFFB_API void StartAllFFBEffects();
+   UNITYDIRECTINPTFFB_API void StopAllFFBEffects();
+   UNITYDIRECTINPTFFB_API void StopDirectInput();
+   UNITYDIRECTINPTFFB_API HRESULT GetDeviceState(DIJOYSTATE2 &m_deviceState);
 }

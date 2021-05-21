@@ -1,9 +1,9 @@
-// unity-ffb.cpp : Defines the exported functions for the DLL.
+// Unity-DirectInputFFB.cpp : Defines the exported functions for the DLL.
 //
 
 #include "pch.h"
 #include "framework.h"
-#include "unity-ffb.h"
+#include "Unity-DirectInputFFB.h"
 #include "util.h"
 
 std::vector<DeviceInfo> g_vDeviceInstances;
@@ -17,10 +17,8 @@ std::map<Effects::Type, DIEFFECT> g_mDIEFFECTs;
  * Once this is initialized, we can then enumerate devices
  * and select/create a Force Feedback device.
  */
-HRESULT StartDirectInput()
-{
-   if (g_pDI != NULL)
-   {
+HRESULT StartDirectInput(){
+   if (g_pDI != NULL){
       return S_OK;
    }
    return DirectInput8Create(
@@ -37,10 +35,8 @@ HRESULT StartDirectInput()
  * about each force feedback device. To create a device, pass its
  * guidInstance to the CreateDevice function.
  */
-DeviceInfo* EnumerateFFBDevices(int &deviceCount)
-{
-   if (g_pDI == NULL)
-   {
+DeviceInfo* EnumerateFFBDevices(int &deviceCount){
+   if(g_pDI == NULL){
       return NULL;
    }
    ClearDeviceInstances();
@@ -50,12 +46,10 @@ DeviceInfo* EnumerateFFBDevices(int &deviceCount)
       NULL,
       DIEDFL_ATTACHEDONLY | DIEDFL_FORCEFEEDBACK
    );
-   if (g_vDeviceInstances.size() > 0)
-   {
+   if(g_vDeviceInstances.size() > 0){
       deviceCount = (int)g_vDeviceInstances.size();
       return &g_vDeviceInstances[0];
-   }
-   else {
+   }else {
       deviceCount = 0;
    }
    return NULL;
@@ -65,8 +59,7 @@ DeviceInfo* EnumerateFFBDevices(int &deviceCount)
  * Called once for each enumerated force feedback device. Each found device is pushed
  * to an array that will be returned.
  */
-BOOL CALLBACK _cbEnumFFBDevices(const DIDEVICEINSTANCE* pInst, void* pContext)
-{
+BOOL CALLBACK _cbEnumFFBDevices(const DIDEVICEINSTANCE* pInst, void* pContext){
    DeviceInfo di = { 0 };
 
    OLECHAR* guidInstance;
@@ -100,8 +93,7 @@ BOOL CALLBACK _cbEnumFFBDevices(const DIDEVICEINSTANCE* pInst, void* pContext)
  * be passed in. The guid can be obtained by looking at the array of enumerated
  * devices.
  */
-HRESULT CreateFFBDevice(LPCSTR guidInstance)
-{
+HRESULT CreateFFBDevice(LPCSTR guidInstance){
    if (g_pDevice) {
       FreeFFBDevice();
    }
@@ -116,31 +108,19 @@ HRESULT CreateFFBDevice(LPCSTR guidInstance)
 
    HRESULT hr = g_pDI->CreateDevice(deviceGuid, &pDevice, NULL);
 
-   if (FAILED(hr))
-   {
-      return hr;
-   }
+   if (FAILED(hr)) { return hr; }
 
    // Not sure if this is necessary.
-   if (FAILED(hr = pDevice->SetDataFormat(&c_dfDIJoystick2)))
-   {
-      return hr;
-   }
+   if (FAILED(hr = pDevice->SetDataFormat(&c_dfDIJoystick2))) { return hr; }
 
    // Find the main window associated with this process.
    HWND hWnd = FindMainWindow(GetCurrentProcessId());
    // Set the cooperative level to let DInput know how this device should
    // interact with the system and with other DInput applications.
    // Exclusive access is required in order to perform force feedback.
-   if (FAILED(hr = pDevice->SetCooperativeLevel(hWnd, DISCL_EXCLUSIVE | DISCL_BACKGROUND)))
-   {
-      return hr;
-   }
+   if (FAILED(hr = pDevice->SetCooperativeLevel(hWnd, DISCL_EXCLUSIVE | DISCL_BACKGROUND))) { return hr; }
 
-   if (FAILED(hr = pDevice->Acquire()))
-   {
-      return hr;
-   }
+   if (FAILED(hr = pDevice->Acquire())) { return hr; }
 
    g_pDevice = pDevice;
 
@@ -152,33 +132,25 @@ HRESULT CreateFFBDevice(LPCSTR guidInstance)
  * the currently selected device. For a steering wheel, there's typically
  * only 1 axis. This function 
  */
-DeviceAxisInfo* EnumerateFFBAxes(int &axisCount)
-{
+DeviceAxisInfo* EnumerateFFBAxes(int &axisCount) {
    // For now assume only one active FFB device at a time.
-   if (g_pDevice == NULL)
-   {
-      return NULL;
-   }
+   if (g_pDevice == NULL) { return NULL; }
 
    DWORD _axisCount = 0;
    ClearDeviceAxes();
    g_pDevice->EnumObjects(_cbEnumFFBAxes, (void*)&_axisCount, DIDFT_AXIS);
 
-   if (g_vDeviceAxes.size() > 0)
-   {
+   if (g_vDeviceAxes.size() > 0) {
       axisCount = (int)g_vDeviceAxes.size();
       return &g_vDeviceAxes[0];
-   }
-   else {
+   } else {
       axisCount = 0;
    }
    return NULL;
 }
 
-BOOL CALLBACK _cbEnumFFBAxes(const DIDEVICEOBJECTINSTANCE* pdidoi, void* pContext)
-{
-   if ((pdidoi->dwFlags & DIDOI_FFACTUATOR) != 0)
-   {
+BOOL CALLBACK _cbEnumFFBAxes(const DIDEVICEOBJECTINSTANCE* pdidoi, void* pContext) {
+   if ((pdidoi->dwFlags & DIDOI_FFACTUATOR) != 0) {
       DWORD* axisCount = (DWORD*)pContext;
       (*axisCount)++;
 
@@ -221,22 +193,16 @@ BOOL CALLBACK _cbEnumFFBAxes(const DIDEVICEOBJECTINSTANCE* pdidoi, void* pContex
  * Only one of each effect can be added at a time.
  * Only supports up to 2 axes max.
  */
-HRESULT AddFFBEffect(Effects::Type effectType)
-{
-   if (g_pDevice == NULL)
-   {
-      return E_FAIL;
-   }
+HRESULT AddFFBEffect(Effects::Type effectType) {
+   if (g_pDevice == NULL) { return E_FAIL; }
 
-   if (g_mEffects.find(effectType) != g_mEffects.end())
-   {
+   if (g_mEffects.find(effectType) != g_mEffects.end()) {
       // You cannot add an effect that is already added.
       return E_ABORT;
    }
 
    int axisCount = (int)g_vDeviceAxes.size();
-   if (axisCount == 0)
-   {
+   if (axisCount == 0) {
       // Must run EnumerateAxes first.
       return E_BOUNDS;
    }
@@ -247,8 +213,7 @@ HRESULT AddFFBEffect(Effects::Type effectType)
    // Populate the rgdwAxes value using data
    // from the Axis enumeration.
    // This should make it so it can support up to 6 axes.
-   for (int i = 0; i < axisCount; i++)
-   {
+   for (int i = 0; i < axisCount; i++) {
       DeviceAxisInfo axis = g_vDeviceAxes[i];
 
       // This is ugly due to storing GUIDs as strings for C#
@@ -282,16 +247,13 @@ HRESULT AddFFBEffect(Effects::Type effectType)
 
    DICONSTANTFORCE* constantForce = NULL;
    DICONDITION* conditions = NULL;
-   if (effectType == Effects::Type::ConstantForce)
-   {
+   if (effectType == Effects::Type::ConstantForce) {
       constantForce = new DICONSTANTFORCE();
       constantForce->lMagnitude = 0;
       effect.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
       effect.lpvTypeSpecificParams = constantForce;
       guidType = GUID_ConstantForce;
-   }
-   else if (effectType == Effects::Type::Spring)
-   {
+   } else if (effectType == Effects::Type::Spring) {
       conditions = new DICONDITION[axisCount];
       ZeroMemory(conditions, sizeof(DICONDITION) * axisCount);
       effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
@@ -300,12 +262,10 @@ HRESULT AddFFBEffect(Effects::Type effectType)
    }
    
    HRESULT hr = E_FAIL;
-   if (guidType != GUID_NULL)
-   {
+   if (guidType != GUID_NULL) {
       LPDIRECTINPUTEFFECT pEffect;
       hr = g_pDevice->CreateEffect(guidType, &effect, &pEffect, NULL);
-      if (!FAILED(hr))
-      {
+      if (!FAILED(hr)) {
          hr = S_OK;
          g_mEffects[effectType] = pEffect;
          g_mDIEFFECTs[effectType] = effect;
@@ -319,12 +279,10 @@ HRESULT AddFFBEffect(Effects::Type effectType)
 /**
  * Remove a force feedback effect by type.
  */
-HRESULT RemoveFFBEffect(Effects::Type effectType)
-{
+HRESULT RemoveFFBEffect(Effects::Type effectType) {
    HRESULT hr = E_FAIL;
 
-   if (g_mEffects.find(effectType) != g_mEffects.end())
-   {
+   if (g_mEffects.find(effectType) != g_mEffects.end()) {
       LPDIRECTINPUTEFFECT pEffect = g_mEffects[effectType];
 
       pEffect->Stop();
@@ -341,8 +299,7 @@ HRESULT RemoveFFBEffect(Effects::Type effectType)
 /**
  * This will start all force feedback effects.
  */
-void StartAllFFBEffects()
-{
+void StartAllFFBEffects() {
    for (auto const& effect : g_mEffects) {
       if (effect.second != NULL) {
          effect.second->Start(1, 0);
@@ -353,8 +310,7 @@ void StartAllFFBEffects()
 /**
  * This will stop all force feedback effects.
  */
-void StopAllFFBEffects()
-{
+void StopAllFFBEffects() {
    for (auto const& effect : g_mEffects) {
       if (effect.second != NULL) {
          effect.second->Stop();
@@ -368,12 +324,10 @@ void StopAllFFBEffects()
  * Takes gainPercent value between 0 - 1 and multiplies with
  * DI_FFNOMINALMAX (10000)
  */
-HRESULT UpdateEffectGain(Effects::Type effectType, float gainPercent)
-{
+HRESULT UpdateEffectGain(Effects::Type effectType, float gainPercent) {
    HRESULT hr = E_FAIL;
 
-   if (g_mEffects.find(effectType) != g_mEffects.end())
-   {
+   if (g_mEffects.find(effectType) != g_mEffects.end()) {
       LPDIRECTINPUTEFFECT pEffect = g_mEffects[effectType];
       DIEFFECT effect = g_mDIEFFECTs[effectType];
       effect.dwSize = sizeof(DIEFFECT);
@@ -392,8 +346,7 @@ HRESULT UpdateEffectGain(Effects::Type effectType, float gainPercent)
  * Directions is an array of directions for each axis on the device.
  * The size of the array must match the number of axes on the device.
  */
-HRESULT UpdateConstantForce(LONG magnitude, LONG* directions)
-{
+HRESULT UpdateConstantForce(LONG magnitude, LONG* directions) {
    HRESULT hr = E_FAIL;
 
    if (g_mEffects.find(Effects::Type::ConstantForce) != g_mEffects.end())
@@ -424,12 +377,10 @@ HRESULT UpdateConstantForce(LONG magnitude, LONG* directions)
  * Updates the spring effect. You must pass an array of conditions that's
  * size matches the number of axes on the device.
  */
-HRESULT UpdateSpring(DICONDITION* conditions)
-{
+HRESULT UpdateSpring(DICONDITION* conditions) {
    HRESULT hr = E_FAIL;
 
-   if (g_mEffects.find(Effects::Type::Spring) != g_mEffects.end())
-   {
+   if (g_mEffects.find(Effects::Type::Spring) != g_mEffects.end()) {
       LPDIRECTINPUTEFFECT pEffect = g_mEffects[Effects::Type::Spring];
 
       int axisCount = (int)g_vDeviceAxes.size();
@@ -454,12 +405,10 @@ HRESULT UpdateSpring(DICONDITION* conditions)
 /**
  * Toggle the auto centering spring for the device.
  */
-HRESULT SetAutoCenter(bool autoCenter)
-{
+HRESULT SetAutoCenter(bool autoCenter) {
    HRESULT hr = E_FAIL;
 
-   if (g_pDevice != NULL)
-   {
+   if (g_pDevice != NULL) {
       DIPROPDWORD dipdw;
       dipdw.diph.dwSize = sizeof(DIPROPDWORD);
       dipdw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
@@ -476,8 +425,7 @@ HRESULT SetAutoCenter(bool autoCenter)
 /**
  * Clean up the Force Feedback device and any effects.
  */
-void FreeFFBDevice()
-{     
+void FreeFFBDevice() {     
    for (auto const& effect : g_mEffects) {
       if (effect.second != NULL) {
          effect.second->Stop();
@@ -495,8 +443,7 @@ void FreeFFBDevice()
 /**
  * Clean-up DirectInput, device and any effects.
  */
-void FreeDirectInput()
-{
+void FreeDirectInput() {
    FreeFFBDevice();
    if (g_pDI) {
       g_pDI->Release();
@@ -507,10 +454,8 @@ void FreeDirectInput()
 /**
  * Clear the global vector of enumerated force feedback devices.
  */
-void ClearDeviceInstances()
-{
-   for (int i = 0; i < g_vDeviceInstances.size(); i++)
-   {
+void ClearDeviceInstances() {
+   for (int i = 0; i < g_vDeviceInstances.size(); i++) {
       delete[] g_vDeviceInstances[i].guidInstance;
       delete[] g_vDeviceInstances[i].guidProduct;
       delete[] g_vDeviceInstances[i].instanceName;
@@ -522,8 +467,7 @@ void ClearDeviceInstances()
 /**
  * Clear the global vector of the selected device's axes.
  */
-void ClearDeviceAxes()
-{
+void ClearDeviceAxes() {
    for (int i = 0; i < g_vDeviceAxes.size(); i++)
    {
       delete[] g_vDeviceAxes[i].guidType;
@@ -536,8 +480,7 @@ void ClearDeviceAxes()
  * This will stop the DirectInput Force Feedback and
  * clean up all memory and references to devices and effects.
  */
-void StopDirectInput()
-{
+void StopDirectInput() {
    FreeDirectInput();
    ClearDeviceAxes();
    ClearDeviceInstances();

@@ -2,10 +2,8 @@
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-namespace UnityFFB
-{
-    public enum EffectsType
-    {
+namespace DirectInputFFB {
+    public enum EffectsType {
         ConstantForce = 0,
         RampForce = 1,
         Square = 2,
@@ -22,8 +20,7 @@ namespace UnityFFB
 
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
-    public struct DeviceInfo
-    {
+    public struct DeviceInfo {
         public uint deviceType;
         [MarshalAs(UnmanagedType.LPStr)]
         public string guidInstance;
@@ -37,8 +34,7 @@ namespace UnityFFB
 
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
-    public struct DeviceAxisInfo
-    {
+    public struct DeviceAxisInfo {
         public uint offset;
         public uint type;
         public uint flags;
@@ -61,8 +57,7 @@ namespace UnityFFB
     /// See https://docs.microsoft.com/en-us/previous-versions/windows/desktop/ee416601(v=vs.85)
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
-    public struct DICondition
-    {
+    public struct DICondition {
         /// <summary>
         /// Offset for the condition, in the range from - 10,000 through 10,000.
         /// </summary>
@@ -114,8 +109,7 @@ namespace UnityFFB
     /// </summary>
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
-    public struct DIJOYSTATE2
-    {
+    public struct DIJOYSTATE2 {
         public int lX;
         public int lY;
         public int lZ;

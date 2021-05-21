@@ -6,11 +6,9 @@ using System.Collections;
 using System.Reflection;
 using UnityEngine;
 
-namespace UnityFFB
-{
-    public class UnityFFB : MonoBehaviour
-    {
-        public static UnityFFB instance;
+namespace DirectInputFFB {
+    public class DirectInputFFB : MonoBehaviour {
+        public static DirectInputFFB instance;
 
         /// <summary>
         /// Whether or not to enable Force Feedback when the behavior starts.
@@ -49,147 +47,117 @@ namespace UnityFFB
         public DeviceAxisInfo[] axes = new DeviceAxisInfo[0];
         public DICondition[] springConditions = new DICondition[0];
 
+        public bool DEBUGGING;
+
         public DIJOYSTATE2 DeviceState;
 
         public System.Collections.Generic.List<string> test;
 
-#if UNITY_STANDALONE_WIN
+        #if UNITY_STANDALONE_WIN
         void Awake(){
             instance = this;
 
-            if (enableOnAwake)
-            {
-                EnableForceFeedback();
-            }
+            if (enableOnAwake) { EnableForceFeedback(); }
         }
 
-        private void FixedUpdate()
-        {
-            if (constantForceEnabled)
-            {
-                UnityFFBNative.UpdateConstantForce((int)(force * sensitivity), axisDirections);
-            }
-            // DebugFunc1();
+        private void FixedUpdate() {
+            if (constantForceEnabled) { Native.UpdateConstantForce((int)(force * sensitivity), axisDirections); }
+            if(DEBUGGING){ DebugFunc1(); }
         }
-#endif
+        #endif
 
         public void EnableForceFeedback(){
-#if UNITY_STANDALONE_WIN
-            if (ffbEnabled)
-            {
-                return;
-            }
+        #if UNITY_STANDALONE_WIN
+            if (ffbEnabled) { return; }
 
-            if (UnityFFBNative.StartDirectInput() >= 0)
-            {
+            if (Native.StartDirectInput() >= 0) {
                 ffbEnabled = true;
-            }
-            else
-            {
+            } else {
                 ffbEnabled = false;
             }
 
             int deviceCount = 0;
 
-            IntPtr ptrDevices = UnityFFBNative.EnumerateFFBDevices(ref deviceCount);
+            IntPtr ptrDevices = Native.EnumerateFFBDevices(ref deviceCount);
 
-            Debug.Log($"[UnityFFB] Device count: {devices.Length}");
-            if (deviceCount > 0)
-            {
+            Debug.Log($"[DirectInputFFB] Device count: {devices.Length}");
+            if (deviceCount > 0) {
                 devices = new DeviceInfo[deviceCount];
 
                 int deviceSize = Marshal.SizeOf(typeof(DeviceInfo));
-                for (int i = 0; i < deviceCount; i++)
-                {
+                for (int i = 0; i < deviceCount; i++) {
                     IntPtr pCurrent = ptrDevices + i * deviceSize;
                     devices[i] = Marshal.PtrToStructure<DeviceInfo>(pCurrent);
                 }
 
-                foreach (DeviceInfo device in devices)
-                {
+                foreach (DeviceInfo device in devices) {
                     string ffbAxis = UnityEngine.JsonUtility.ToJson(device, true);
                     Debug.Log(ffbAxis);
                 }
 
-                if (autoSelectFirstDevice)
-                {
-                    SelectDevice(devices[0].guidInstance);
-                }
+                if (autoSelectFirstDevice) { SelectDevice(devices[0].guidInstance); }
             }
-#endif
+        #endif
         }
 
         public void DisableForceFeedback(){
-#if UNITY_STANDALONE_WIN
-            UnityFFBNative.StopDirectInput();
+        #if UNITY_STANDALONE_WIN
+            Native.StopDirectInput();
             ffbEnabled = false;
             constantForceEnabled = false;
             devices = new DeviceInfo[0];
             activeDevice = null;
             axes = new DeviceAxisInfo[0];
             springConditions = new DICondition[0];
-#endif
+        #endif
         }
 
         public void SelectDevice(string deviceGuid){
-#if UNITY_STANDALONE_WIN
+        #if UNITY_STANDALONE_WIN
             // For now just initialize the first FFB Device.
-            int hresult = UnityFFBNative.CreateFFBDevice(deviceGuid);
-            if (hresult == 0)
-            {
+            int hresult = Native.CreateFFBDevice(deviceGuid);
+            if (hresult == 0) {
                 activeDevice = devices[0];
 
-                if (disableAutoCenter)
-                {
-                    hresult = UnityFFBNative.SetAutoCenter(false);
-                    if (hresult != 0)
-                    {
-                        Debug.LogError($"[UnityFFB] SetAutoCenter Failed: 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
+                if (disableAutoCenter) {
+                    hresult = Native.SetAutoCenter(false);
+                    if (hresult != 0) {
+                        Debug.LogError($"[DirectInputFFB] SetAutoCenter Failed: 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
                     }
                 }
 
                 int axisCount = 0;
-                IntPtr ptrAxes = UnityFFBNative.EnumerateFFBAxes(ref axisCount);
-                if (axisCount > 0)
-                {
+                IntPtr ptrAxes = Native.EnumerateFFBAxes(ref axisCount);
+                if (axisCount > 0) {
                     axes = new DeviceAxisInfo[axisCount];
                     axisDirections = new int[axisCount];
                     springConditions = new DICondition[axisCount];
 
                     int axisSize = Marshal.SizeOf(typeof(DeviceAxisInfo));
-                    for (int i = 0; i < axisCount; i++)
-                    {
+                    for (int i = 0; i < axisCount; i++) {
                         IntPtr pCurrent = ptrAxes + i * axisSize;
                         axes[i] = Marshal.PtrToStructure<DeviceAxisInfo>(pCurrent);
                         axisDirections[i] = 0;
                         springConditions[i] = new DICondition();
                     }
 
-                    if (addConstantForce)
-                    {
-                        hresult = UnityFFBNative.AddFFBEffect(EffectsType.ConstantForce);
-                        if (hresult == 0)
-                        {
-                            hresult = UnityFFBNative.UpdateConstantForce(0, axisDirections);
-                            if (hresult != 0)
-                            {
-                                Debug.LogError($"[UnityFFB] UpdateConstantForce Failed: 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
+                    if (addConstantForce) {
+                        hresult = Native.AddFFBEffect(EffectsType.ConstantForce);
+                        if (hresult == 0) {
+                            hresult = Native.UpdateConstantForce(0, axisDirections);
+                            if (hresult != 0) {
+                                Debug.LogError($"[DirectInputFFB] UpdateConstantForce Failed: 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
                             }
                             constantForceEnabled = true;
-                        }
-                        else
-                        {
-                            Debug.LogError($"[UnityFFB] AddConstantForce Failed: 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
+                        } else {
+                            Debug.LogError($"[DirectInputFFB] AddConstantForce Failed: 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
                         }
                     }
 
-                    if (addSpringForce)
-                    {
-                        hresult = UnityFFBNative.AddFFBEffect(EffectsType.Spring);
-                        if (hresult == 0)
-                        {
-                            for (int i = 0; i < springConditions.Length; i++)
-                            {
+                    if (addSpringForce) {
+                        hresult = Native.AddFFBEffect(EffectsType.Spring);
+                        if (hresult == 0) {
+                            for (int i = 0; i < springConditions.Length; i++) {
                                 springConditions[i].deadband = 0;
                                 springConditions[i].offset = 0;
                                 springConditions[i].negativeCoefficient = 2000;
@@ -197,96 +165,68 @@ namespace UnityFFB
                                 springConditions[i].negativeSaturation = 10000;
                                 springConditions[i].positiveSaturation = 10000;
                             }
-                            hresult = UnityFFBNative.UpdateSpring(springConditions);
-                            Debug.LogError($"[UnityFFB] UpdateSpringForce Failed: 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
-                        }
-                        else
-                        {
-                            Debug.LogError($"[UnityFFB] AddSpringForce Failed: 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
+                            hresult = Native.UpdateSpring(springConditions);
+                            Debug.LogError($"[DirectInputFFB] UpdateSpringForce Failed: 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
+                        } else {
+                            Debug.LogError($"[DirectInputFFB] AddSpringForce Failed: 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
                         }
                     }
                 }
-                Debug.Log($"[UnityFFB] Axis count: {axes.Length}");
-                foreach (DeviceAxisInfo axis in axes)
-                {
+                Debug.Log($"[DirectInputFFB] Axis count: {axes.Length}");
+                foreach (DeviceAxisInfo axis in axes) {
                     string ffbAxis = UnityEngine.JsonUtility.ToJson(axis, true);
                     Debug.Log(ffbAxis);
                 }
-            }
-            else
-            {
+            } else {
                 activeDevice = null;
-                Debug.LogError($"[UnityFFB] 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
+                Debug.LogError($"[DirectInputFFB] 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
             }
-#endif
+        #endif
         }
 
         public void SetConstantForceGain(float gainPercent){
-#if UNITY_STANDALONE_WIN
-            if (constantForceEnabled)
-            {
-                int hresult = UnityFFBNative.UpdateEffectGain(EffectsType.ConstantForce, gainPercent);
-                Debug.LogError($"[UnityFFB] UpdateEffectGain Failed: 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
+        #if UNITY_STANDALONE_WIN
+            if (constantForceEnabled) {
+                int hresult = Native.UpdateEffectGain(EffectsType.ConstantForce, gainPercent);
+                Debug.LogError($"[DirectInputFFB] UpdateEffectGain Failed: 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}");
             }
-#endif
+        #endif
         }
 
         public void StartFFBEffects(){
-#if UNITY_STANDALONE_WIN
-            UnityFFBNative.StartAllFFBEffects();
+        #if UNITY_STANDALONE_WIN
+            Native.StartAllFFBEffects();
             constantForceEnabled = true;
-#endif
+        #endif
         }
 
         public void StopFFBEffects(){
-#if UNITY_STANDALONE_WIN
-            UnityFFBNative.StopAllFFBEffects();
+        #if UNITY_STANDALONE_WIN
+            Native.StopAllFFBEffects();
             constantForceEnabled = false;
-#endif
+        #endif
         }
 
-#if UNITY_STANDALONE_WIN
+        #if UNITY_STANDALONE_WIN
         public void OnApplicationQuit(){
             DisableForceFeedback();
         }
-#endif
+        #endif
+
         [ContextMenu("GetState")]
         public void DebugFunc1(){
             DIJOYSTATE2 prevDeviceState = DeviceState;
-            int hresult = UnityFFBNative.GetDeviceState(ref DeviceState);
-            if(hresult!=0){ Debug.LogError($"[UnityFFB] GetDeviceState : 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}"); }
+            int hresult = Native.GetDeviceState(ref DeviceState);
+            if(hresult!=0){ Debug.LogError($"[DirectInputFFB] GetDeviceState : 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}"); }
 
             test = Compare(DeviceState, prevDeviceState);
-
-            // FieldInfo[] fields = DeviceState.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
-            // foreach (FieldInfo fi in fields) {
-            //     object value = fi.GetValue(DeviceState);
-            //     // Debug.Log(value.ToString());
-            //     if(value.ToString().EndsWith("[]")) {
-            //         Type t = value.GetType();
-            //         Debug.Log($"{fi.Name} = {value}");
-            //         // var isEqual = DeviceState[fi.Name].SequenceEqual(prevDeviceState[fi.Name]);
-            //         // IStructuralEquatable se1 = DeviceState;
-            //         // var isEqual = se1.Equals (prevDeviceState, StructuralComparisons.StructuralEqualityComparer);
-            //         // Debug.Log(isEqual);
-            //         //System.Diagnostics.Debug.WriteLine(fi.Name);
-            //         //System.Diagnostics.Debugger.Break();
-            //     } else {
-            //         // Debug.Log($"{fi.Name} = {value}");
-            //     }
-            // }
-            // var json = JsonUtility.ToJson(DeviceState);
-            // Debug.Log(json);
-            // Debug.Log("Test2");
-            // Debug.Log(json);
-
         }
 
         [ContextMenu("GetState2")]
         public void DebugFunc2(){
             DIJOYSTATE2 prevDeviceState = DeviceState;
-            int hresult = UnityFFBNative.GetDeviceState(ref DeviceState);
-            if(hresult!=0){ Debug.LogError($"[UnityFFB] GetDeviceState : 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}"); }
+            int hresult = Native.GetDeviceState(ref DeviceState);
+            if(hresult!=0){ Debug.LogError($"[DirectInputFFB] GetDeviceState : 0x{hresult.ToString("x")} {WinErrors.GetSystemMessage(hresult)}"); }
 
             var DEV = DEVCompare(DeviceState, prevDeviceState);
             Debug.Log( DEV );

@@ -1,54 +1,55 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace UnityFFB
-{
-    public class UnityFFBNative
-    {
-#if UNITY_STANDALONE_WIN
+namespace DirectInputFFB {
+    public class Native {
+        
+        #if UNITY_STANDALONE_WIN
+        private const string FFBDLL = "UnityDirectInputFFB";
 
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern int StartDirectInput();
 
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern IntPtr EnumerateFFBDevices(ref int deviceCount);
 
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern IntPtr EnumerateFFBAxes(ref int axisCount);
 
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern int CreateFFBDevice(string guidInstance);
 
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern int AddFFBEffect(EffectsType effectType);
 
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern int UpdateConstantForce(int magnitude, int[] directions);
 
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern int UpdateSpring(DICondition[] conditions);
 
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern int UpdateEffectGain(EffectsType effectType, float gainPercent);
 
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern int SetAutoCenter(bool autoCenter);
 
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern void StartAllFFBEffects();
 
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern void StopAllFFBEffects();
 
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern void StopDirectInput();
 
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern int PollDevice();
         
-        [DllImport("UNITYFFB")]
+        [DllImport(FFBDLL)]
         public static extern int GetDeviceState(ref DIJOYSTATE2 DeviceStateObj);
-        
-#endif
+    
+        #endif
+
     }
 }
