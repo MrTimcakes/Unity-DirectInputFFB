@@ -394,3 +394,44 @@ public class DirectInputDevice : InputDevice, IInputUpdateCallbackReceiver{
         InputSystem.QueueStateEvent(this, state);
     }
 }
+
+
+
+/// <summary>
+/// Unity Input System Processor to center Axis values, like steering wheels
+/// </summary>
+#if UNITY_EDITOR
+[InitializeOnLoad]
+#endif
+public class CenteringProcessor : InputProcessor<float>{
+    #if UNITY_EDITOR
+    static CenteringProcessor(){ Initialize(); }
+    #endif
+
+    [RuntimeInitializeOnLoadMethod]
+    static void Initialize(){ InputSystem.RegisterProcessor<CenteringProcessor>(); }
+
+    public override float Process(float value, InputControl control){
+        return (value*2)-1;
+    }
+}
+
+
+/// <summary>
+/// (Value*-1)+1    Smart Invert, remaps values from 1-0 to 0-1
+/// </summary>
+#if UNITY_EDITOR
+[InitializeOnLoad]
+#endif
+public class SmartInvertProcessor : InputProcessor<float>{
+    #if UNITY_EDITOR
+    static SmartInvertProcessor(){ Initialize(); }
+    #endif
+
+    [RuntimeInitializeOnLoadMethod]
+    static void Initialize(){ InputSystem.RegisterProcessor<SmartInvertProcessor>(); }
+
+    public override float Process(float value, InputControl control){
+        return (value*-1)+1;
+    }
+}
