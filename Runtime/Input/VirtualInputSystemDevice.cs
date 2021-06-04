@@ -1,4 +1,6 @@
 using System.Linq;
+using System;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -261,6 +263,7 @@ public struct DIJOYSTATE2State : IInputStateTypeInfo {
 #endif
 [InputControlLayout(stateType = typeof(DIJOYSTATE2State))]
 public class DirectInputDevice : InputDevice, IInputUpdateCallbackReceiver{
+
     #if UNITY_EDITOR
     static DirectInputDevice(){
         Initialize();
@@ -269,23 +272,15 @@ public class DirectInputDevice : InputDevice, IInputUpdateCallbackReceiver{
 
     [RuntimeInitializeOnLoadMethod]
     private static void Initialize(){
+        DirectInputFFB.FFBManager.Initialize(); // Initialize FFBManager incase it's not already
+        DirectInputFFB.FFBManager.OnDeviceStateChange += OnDeviceStateChange; // Register listner
         InputSystem.RegisterLayout<DirectInputDevice>(
             matches: new InputDeviceMatcher()
                 .WithInterface("DirectX DirectInput"));
     }
 
-    // public ButtonControl firstButton { get; private set; }
-    // public ButtonControl secondButton { get; private set; }
-    // public ButtonControl thirdButton { get; private set; }
-    // public StickControl stick { get; private set; }
-
     protected override void FinishSetup(){
         base.FinishSetup();
-
-        // firstButton = GetChildControl<ButtonControl>("firstButton");
-        // secondButton = GetChildControl<ButtonControl>("secondButton");
-        // thirdButton = GetChildControl<ButtonControl>("thirdButton");
-        // stick = GetChildControl<StickControl>("stick");
     }
 
     public static DirectInputDevice current { get; private set; }
@@ -302,7 +297,7 @@ public class DirectInputDevice : InputDevice, IInputUpdateCallbackReceiver{
 
 
     #if UNITY_EDITOR
-    [MenuItem("Tools/Create DI Device")]
+    [MenuItem("DirectInputFFB/Create Virtual Input Device")]
     private static void CreateDevice(){
         InputSystem.AddDevice(new InputDeviceDescription{
             interfaceName = "DirectX DirectInput",
@@ -310,7 +305,7 @@ public class DirectInputDevice : InputDevice, IInputUpdateCallbackReceiver{
         });
     }
 
-    [MenuItem("Tools/Destroy DI Device")]
+    [MenuItem("DirectInputFFB/Destroy Virtual Input Device")]
     private static void RemoveDevice(){
         var DirectInputDevice = InputSystem.devices.FirstOrDefault(x => x is DirectInputDevice);
         if (DirectInputDevice != null)
@@ -320,78 +315,15 @@ public class DirectInputDevice : InputDevice, IInputUpdateCallbackReceiver{
     #endif
 
     public void OnUpdate(){
-        var state = new DIJOYSTATE2State();
+        DirectInputFFB.FFBManager.PollDevice(); // Poll the DirectInput Device
+    }
 
-        DirectInputFFB.DIJOYSTATE2 DeviceState = new DirectInputFFB.DIJOYSTATE2(); // Store the raw state of the device
-        int hresult = DirectInputFFB.Native.GetDeviceState(ref DeviceState); // Fetch the device state
-        // if(hresult!=0){ Debug.LogError($"[DirectInputFFB] GetDeviceState : 0x{hresult.ToString("x")} {DirectInputFFB.WinErrors.GetSystemMessage(hresult)}\n[DirectInputFFB] Perhaps the device has not been attached/acquired"); }
-
-
-        for (int i = 0; i < 64; i++){ // In banks of 64, shift in the sate of each button BankA 0-63
-            if(DeviceState.rgbButtons[i] == 128) // 128 = Button pressed
-                state.buttonsA |= (ulong)(1 << i); // Shift in a 1 to the button at index i
+    public static void OnDeviceStateChange(object sender, EventArgs args){
+        DIJOYSTATE2State state = DirectInputFFB.Utilities.UnFlatJoyState2(DirectInputFFB.FFBManager.state);
+        // Check if DirectInputDevice is enabled
+        if( InputSystem.devices.FirstOrDefault(x => x is DirectInputDevice) != null){
+            InputSystem.QueueStateEvent( DirectInputDevice.current , state); // Only bubble Input System Event if input has changed
         }
-
-        for (int i = 64; i < 128; i++){ // 2nd bank of buttons from 64-128
-            if(DeviceState.rgbButtons[i] == 128) // 128 = Button pressed
-                state.buttonsB |= (ulong)(1 << i); // Shift in a 1 to the button at index i
-        }
-
-        state.lX = (ushort)DeviceState.lX; // X-axis
-        state.lY = (ushort)DeviceState.lY; // Y-axis
-        state.lZ = (ushort)DeviceState.lZ; // Z-axis
-        // rglSlider
-        state.lU = (ushort)DeviceState.rglSlider.First(); // U-axis
-        state.lV = (ushort)DeviceState.rglSlider.Last(); // V-axis
-
-        state.lRx = (ushort)DeviceState.lRx; // X-axis rotation
-        state.lRy = (ushort)DeviceState.lRy; // Y-axis rotation
-        state.lRz = (ushort)DeviceState.lRz; // Z-axis rotation
-
-        state.lVX = (ushort)DeviceState.lVX; // X-axis velocity
-        state.lVY = (ushort)DeviceState.lVY; // Y-axis velocity
-        state.lVZ = (ushort)DeviceState.lVZ; // Z-axis velocity
-        // rglVSlider
-        state.lVU = (ushort)DeviceState.rglVSlider.First(); // U-axis velocity
-        state.lVV = (ushort)DeviceState.rglVSlider.Last(); // V-axis velocity
-
-        state.lVRx = (ushort)DeviceState.lVRx; // X-axis angular velocity
-        state.lVRy = (ushort)DeviceState.lVRy; // Y-axis angular velocity
-        state.lVRz = (ushort)DeviceState.lVRz; // Z-axis angular velocity
-
-        state.lAX = (ushort)DeviceState.lAX; // X-axis acceleration
-        state.lAY = (ushort)DeviceState.lAY; // Y-axis acceleration
-        state.lAZ = (ushort)DeviceState.lAZ; // Z-axis acceleration
-        // rglASlider
-        state.lAU = (ushort)DeviceState.rglASlider.First(); // U-axis acceleration
-        state.lAV = (ushort)DeviceState.rglASlider.Last(); // V-axis acceleration
-
-        state.lARx = (ushort)DeviceState.lARx; // X-axis angular acceleration
-        state.lARy = (ushort)DeviceState.lARy; // Y-axis angular acceleration
-        state.lARz = (ushort)DeviceState.lARz; // Z-axis angular acceleration
-
-        state.lFX = (ushort)DeviceState.lFX; // X-axis force
-        state.lFY = (ushort)DeviceState.lFY; // Y-axis force
-        state.lFZ = (ushort)DeviceState.lFZ; // Z-axis force
-        // rglFSlider
-        state.lFU = (ushort)DeviceState.rglFSlider.First(); // U-axis force
-        state.lFV = (ushort)DeviceState.rglFSlider.Last(); // V-axis force
-        
-
-        state.lFRx = (ushort)DeviceState.lFRx; // X-axis torque
-        state.lFRy = (ushort)DeviceState.lFRy; // Y-axis torque
-        state.lFRz = (ushort)DeviceState.lFRz; // Z-axis torque
-
-        for (int i = 0; i < 4; i++){ // In banks of 4, shift in the sate of each DPAD 0-16 bits
-            switch(DeviceState.rgdwPOV[i]){
-                case 0:     state.rgdwPOV |= (byte)(1 << ((i+1)*0));break; // dpad0/up, bit = 0     shift into value at stride (i+1) * DPADButton
-                case 18000: state.rgdwPOV |= (byte)(1 << ((i+1)*1));break; // dpad0/down, bit = 1
-                case 27000: state.rgdwPOV |= (byte)(1 << ((i+1)*2));break; // dpad0/left, bit = 2
-                case 9000:  state.rgdwPOV |= (byte)(1 << ((i+1)*3));break; // dpad0/right, bit = 3
-            }
-        }
-
-        InputSystem.QueueStateEvent(this, state);
     }
 }
 
