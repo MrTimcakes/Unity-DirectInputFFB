@@ -147,4 +147,45 @@ namespace DirectInputFFB {
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
 	    public int[] rglFSlider;
     }
+
+    [Serializable]
+    public struct FlatJoyState2{
+
+        public ulong buttonsA; // Buttons seperated into banks of 64-Bits to fit into Unsigned 64-bit integer
+        public ulong buttonsB; // Buttons seperated into banks of 64-Bits to fit into Unsigned 64-bit integer
+        public ushort lX; // X-axis
+        public ushort lY; // Y-axis
+        public ushort lZ; // Z-axis
+        public ushort lU; // U-axis
+        public ushort lV; // V-axis
+        public ushort lRx; // X-axis rotation
+        public ushort lRy; // Y-axis rotation
+        public ushort lRz; // Z-axis rotation
+        public ushort lVX; // X-axis velocity
+        public ushort lVY; // Y-axis velocity
+        public ushort lVZ; // Z-axis velocity
+        public ushort lVU; // U-axis velocity
+        public ushort lVV; // V-axis velocity
+        public ushort lVRx; // X-axis angular velocity
+        public ushort lVRy; // Y-axis angular velocity
+        public ushort lVRz; // Z-axis angular velocity
+        public ushort lAX; // X-axis acceleration
+        public ushort lAY; // Y-axis acceleration
+        public ushort lAZ; // Z-axis acceleration
+        public ushort lAU; // U-axis acceleration
+        public ushort lAV; // V-axis acceleration
+        public ushort lARx; // X-axis angular acceleration
+        public ushort lARy; // Y-axis angular acceleration
+        public ushort lARz; // Z-axis angular acceleration
+        public ushort lFX; // X-axis force
+        public ushort lFY; // Y-axis force
+        public ushort lFZ; // Z-axis force
+        public ushort lFU; // U-axis force
+        public ushort lFV; // V-axis force
+        public ushort lFRx; // X-axis torque
+        public ushort lFRy; // Y-axis torque
+        public ushort lFRz; // Z-axis torque
+        public short rgdwPOV; // Store each DPAD in chunks of 4 bits inside 16-bit short     
+        
+    }
 }
