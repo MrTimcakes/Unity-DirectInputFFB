@@ -247,18 +247,35 @@ HRESULT AddFFBEffect(Effects::Type effectType) {
 
    DICONSTANTFORCE* constantForce = NULL;
    DICONDITION* conditions = NULL;
-   if (effectType == Effects::Type::ConstantForce) {
-      constantForce = new DICONSTANTFORCE();
-      constantForce->lMagnitude = 0;
-      effect.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
-      effect.lpvTypeSpecificParams = constantForce;
-      guidType = GUID_ConstantForce;
-   } else if (effectType == Effects::Type::Spring) {
-      conditions = new DICONDITION[axisCount];
-      ZeroMemory(conditions, sizeof(DICONDITION) * axisCount);
-      effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
-      effect.lpvTypeSpecificParams = conditions;
-      guidType = GUID_Spring;
+
+   switch (effectType) {
+     case Effects::Type::ConstantForce:
+       constantForce = new DICONSTANTFORCE();
+       constantForce->lMagnitude = 0;
+       effect.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
+       effect.lpvTypeSpecificParams = constantForce;
+       guidType = GUID_ConstantForce;
+       break;
+
+     case Effects::Type::Spring:
+       conditions = new DICONDITION[axisCount];
+       ZeroMemory(conditions, sizeof(DICONDITION) * axisCount);
+       effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
+       effect.lpvTypeSpecificParams = conditions;
+       guidType = GUID_Spring;
+       break;
+
+     case Effects::Type::Damper:
+       conditions = new DICONDITION[axisCount];
+       ZeroMemory(conditions, sizeof(DICONDITION) * axisCount);
+       effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
+       effect.lpvTypeSpecificParams = conditions;
+       guidType = GUID_Damper;
+       break;
+
+     default:
+       // code block
+       break;
    }
    
    HRESULT hr = E_FAIL;
@@ -374,35 +391,6 @@ HRESULT UpdateConstantForce(LONG magnitude, LONG* directions) {
 }
 
 /**
- * Updates the spring effect. You must pass an array of conditions that's
- * size matches the number of axes on the device.
- */
-HRESULT UpdateSpring(DICONDITION* conditions) {
-   HRESULT hr = E_FAIL;
-
-   if (g_mEffects.find(Effects::Type::Spring) != g_mEffects.end()) {
-      LPDIRECTINPUTEFFECT pEffect = g_mEffects[Effects::Type::Spring];
-
-      int axisCount = (int)g_vDeviceAxes.size();
-
-      DIEFFECT effect = g_mDIEFFECTs[Effects::Type::Spring];
-      effect.cAxes = axisCount;
-      effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
-      for (int i = 0; i < axisCount; i++) {
-         ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lOffset = conditions[i].lOffset;
-         ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lPositiveCoefficient = conditions[i].lPositiveCoefficient;
-         ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lNegativeCoefficient = conditions[i].lNegativeCoefficient;
-         ((DICONDITION*)effect.lpvTypeSpecificParams)[i].dwPositiveSaturation = conditions[i].dwPositiveSaturation;
-         ((DICONDITION*)effect.lpvTypeSpecificParams)[i].dwNegativeSaturation = conditions[i].dwNegativeSaturation;
-      }
-
-      hr = pEffect->SetParameters(&effect, DIEP_DIRECTION | DIEP_TYPESPECIFICPARAMS | DIEP_START);
-   }
-
-   return hr;
-}
-
-/**
  * Toggle the auto centering spring for the device.
  */
 HRESULT SetAutoCenter(bool autoCenter) {
@@ -491,6 +479,122 @@ HRESULT GetDeviceState(DIJOYSTATE2& m_deviceState) {
 
   if (g_pDevice != NULL) { // We have an active device
     hr = g_pDevice->GetDeviceState(sizeof(DIJOYSTATE2), (void*)&m_deviceState);
+  }
+
+  return hr;
+}
+
+/**
+ * Updates the spring effect. You must pass an array of conditions that's
+ * size matches the number of axes on the device.
+ */
+HRESULT UpdateSpringRaw(DICONDITION* conditions) {
+  HRESULT hr = E_FAIL;
+
+  if (g_mEffects.find(Effects::Type::Spring) != g_mEffects.end()) {
+    LPDIRECTINPUTEFFECT pEffect = g_mEffects[Effects::Type::Spring];
+
+    int axisCount = (int)g_vDeviceAxes.size();
+
+    DIEFFECT effect = g_mDIEFFECTs[Effects::Type::Spring];
+    effect.cAxes = axisCount;
+    effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
+    for (int i = 0; i < axisCount; i++) {
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lOffset = conditions[i].lOffset;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lPositiveCoefficient = conditions[i].lPositiveCoefficient;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lNegativeCoefficient = conditions[i].lNegativeCoefficient;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].dwPositiveSaturation = conditions[i].dwPositiveSaturation;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].dwNegativeSaturation = conditions[i].dwNegativeSaturation;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lDeadBand = conditions[i].lDeadBand;
+    }
+
+    hr = pEffect->SetParameters(&effect, DIEP_DIRECTION | DIEP_TYPESPECIFICPARAMS | DIEP_START);
+  }
+
+  return hr;
+
+}
+
+/**
+ * Updates the spring effect.
+ * Pass Offset, Coeff, Saturation in range -10,000 to 10,000 type LONG
+ * Effect will be applied on all Axes on the device
+ */
+HRESULT UpdateSpring(LONG Offset, LONG Coeff, LONG Saturation) {
+  HRESULT hr = E_FAIL;
+
+  if (g_mEffects.find(Effects::Type::Spring) != g_mEffects.end()) {
+    LPDIRECTINPUTEFFECT pEffect = g_mEffects[Effects::Type::Spring];
+
+    int axisCount = (int)g_vDeviceAxes.size();
+
+    DIEFFECT effect = g_mDIEFFECTs[Effects::Type::Spring];
+    effect.cAxes = axisCount;
+    effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
+    for (int i = 0; i < axisCount; i++) {
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lOffset = Offset;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lPositiveCoefficient = Coeff;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lNegativeCoefficient = Coeff;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].dwPositiveSaturation = Saturation;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].dwNegativeSaturation = Saturation;
+    }
+
+    hr = pEffect->SetParameters(&effect, DIEP_DIRECTION | DIEP_TYPESPECIFICPARAMS | DIEP_START);
+  }
+
+  return hr;
+}
+
+
+/**
+ * Updates the Damper effect. You must pass an array of conditions that's
+ * size matches the number of axes on the device.
+ */
+HRESULT UpdateDamperRaw(DICONDITION* conditions) {
+  HRESULT hr = E_FAIL;
+
+  if (g_mEffects.find(Effects::Type::Damper) != g_mEffects.end()) {
+    LPDIRECTINPUTEFFECT pEffect = g_mEffects[Effects::Type::Damper];
+
+    int axisCount = (int)g_vDeviceAxes.size();
+
+    DIEFFECT effect = g_mDIEFFECTs[Effects::Type::Damper];
+    effect.cAxes = axisCount;
+    effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
+    for (int i = 0; i < axisCount; i++) {
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lOffset = conditions[i].lOffset;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lPositiveCoefficient = conditions[i].lPositiveCoefficient;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lNegativeCoefficient = conditions[i].lNegativeCoefficient;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].dwPositiveSaturation = conditions[i].dwPositiveSaturation;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].dwNegativeSaturation = conditions[i].dwNegativeSaturation;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lDeadBand = conditions[i].lDeadBand;
+    }
+
+    hr = pEffect->SetParameters(&effect, DIEP_DIRECTION | DIEP_TYPESPECIFICPARAMS | DIEP_START);
+  }
+
+  return hr;
+
+}
+
+/**
+ * Updates the Damper effect. LONG in range -10,000 to 10,000
+ */
+HRESULT UpdateDamper(LONG Magnitude) {
+  HRESULT hr = E_FAIL;
+
+  if (g_mEffects.find(Effects::Type::Damper) != g_mEffects.end()) {
+    LPDIRECTINPUTEFFECT pEffect = g_mEffects[Effects::Type::Damper]; // Fetch Device Damper Effect
+    int axisCount = (int)g_vDeviceAxes.size();
+    DIEFFECT effect = g_mDIEFFECTs[Effects::Type::Damper]; // Fetch 
+    effect.cAxes = axisCount;
+    effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
+    for (int i = 0; i < axisCount; i++) {
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lPositiveCoefficient = Magnitude;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lNegativeCoefficient = Magnitude;
+    }
+
+    hr = pEffect->SetParameters(&effect, DIEP_DIRECTION | DIEP_TYPESPECIFICPARAMS | DIEP_START);
   }
 
   return hr;
