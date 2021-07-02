@@ -21,21 +21,38 @@ Next, install this package:
 `Package Manager => + => "Add package from git URL..." => ` `https://github.com/MrTimcakes/Unity-DirectInputFFB.git` 
 
 
+## Supported ForceFeedback Effects
+
+| Effect        | Supported |
+|---------------|-----------|
+| ConstantForce | ✅ |
+| CustomForce   | 🔲 |
+| Damper        | ✅ |
+| Friction      | 🔲 |
+| Inertia       | 🔲 |
+| RampForce     | 🔲 |
+| SawtoothDown  | 🔲 |
+| SawtoothUp    | 🔲 |
+| Sine          | 🔲 |
+| Spring        | ✅ |
+| Square        | 🔲 |
+| Triangle      | 🔲 |
+
 ## Compatible Devices
 
 | Peripheral                         | Test Status    |
 |------------------------------------|----------------|
 | Fanatec CSL Elite                  | ✅ Verified    |
 | Fanatec WRC Wheel Rim              | ✅ Verified    |
+| Fanatec Formula V2 Wheel Rim       | ✅ Verified    |
 | Fanatec CSL LC Pedals              | ✅ Verified    |
 | Fanatec ClubSport Shifter SQ V 1.5 | ✅ Verified    |
-| Logitech G29                       | 🔲 Untested    |
+| Logitech G29 / G920                | 🔲 Untested    |
 
 ## Current limitations
 
 1. Architected in a way to only support 1 controller.
-2. Currently only supports 1 Effect of each type per device.
-3. Only supports Constant Force and Spring Condition.
+2. Currently only supports 1 Effect of each type.
 
 ## Environment
 
