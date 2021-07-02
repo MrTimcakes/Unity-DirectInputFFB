@@ -273,6 +273,22 @@ HRESULT AddFFBEffect(Effects::Type effectType) {
        guidType = GUID_Damper;
        break;
 
+     case Effects::Type::Friction:
+       conditions = new DICONDITION[axisCount];
+       ZeroMemory(conditions, sizeof(DICONDITION) * axisCount);
+       effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
+       effect.lpvTypeSpecificParams = conditions;
+       guidType = GUID_Friction;
+       break;
+
+     case Effects::Type::Inertia:
+       conditions = new DICONDITION[axisCount];
+       ZeroMemory(conditions, sizeof(DICONDITION) * axisCount);
+       effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
+       effect.lpvTypeSpecificParams = conditions;
+       guidType = GUID_Inertia;
+       break;
+
      default:
        // code block
        break;
@@ -587,6 +603,117 @@ HRESULT UpdateDamper(LONG Magnitude) {
     LPDIRECTINPUTEFFECT pEffect = g_mEffects[Effects::Type::Damper]; // Fetch Device Damper Effect
     int axisCount = (int)g_vDeviceAxes.size();
     DIEFFECT effect = g_mDIEFFECTs[Effects::Type::Damper]; // Fetch 
+    effect.cAxes = axisCount;
+    effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
+    for (int i = 0; i < axisCount; i++) {
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lPositiveCoefficient = Magnitude;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lNegativeCoefficient = Magnitude;
+    }
+
+    hr = pEffect->SetParameters(&effect, DIEP_DIRECTION | DIEP_TYPESPECIFICPARAMS | DIEP_START);
+  }
+
+  return hr;
+}
+
+/**
+ * Updates the Friction effect. You must pass an array of conditions that's
+ * size matches the number of axes on the device.
+ */
+HRESULT UpdateFrictionRaw(DICONDITION* conditions) {
+  HRESULT hr = E_FAIL;
+
+  if (g_mEffects.find(Effects::Type::Friction) != g_mEffects.end()) {
+    LPDIRECTINPUTEFFECT pEffect = g_mEffects[Effects::Type::Friction];
+
+    int axisCount = (int)g_vDeviceAxes.size();
+
+    DIEFFECT effect = g_mDIEFFECTs[Effects::Type::Friction];
+    effect.cAxes = axisCount;
+    effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
+    for (int i = 0; i < axisCount; i++) {
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lOffset = conditions[i].lOffset;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lPositiveCoefficient = conditions[i].lPositiveCoefficient;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lNegativeCoefficient = conditions[i].lNegativeCoefficient;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].dwPositiveSaturation = conditions[i].dwPositiveSaturation;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].dwNegativeSaturation = conditions[i].dwNegativeSaturation;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lDeadBand = conditions[i].lDeadBand;
+    }
+
+    hr = pEffect->SetParameters(&effect, DIEP_DIRECTION | DIEP_TYPESPECIFICPARAMS | DIEP_START);
+  }
+
+  return hr;
+
+}
+
+/**
+ * Updates the Friction effect. LONG in range -10,000 to 10,000
+ */
+HRESULT UpdateFriction(LONG Magnitude) {
+  HRESULT hr = E_FAIL;
+
+  if (g_mEffects.find(Effects::Type::Friction) != g_mEffects.end()) {
+    LPDIRECTINPUTEFFECT pEffect = g_mEffects[Effects::Type::Friction];
+
+    int axisCount = (int)g_vDeviceAxes.size();
+
+    DIEFFECT effect = g_mDIEFFECTs[Effects::Type::Friction];
+    effect.cAxes = axisCount;
+    effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
+    for (int i = 0; i < axisCount; i++) {
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lPositiveCoefficient = Magnitude;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lNegativeCoefficient = Magnitude;
+    }
+
+    hr = pEffect->SetParameters(&effect, DIEP_DIRECTION | DIEP_TYPESPECIFICPARAMS | DIEP_START);
+  }
+
+  return hr;
+}
+
+/**
+ * Updates the Inertia effect. You must pass an array of conditions that's
+ * size matches the number of axes on the device.
+ */
+HRESULT UpdateInertiaRaw(DICONDITION* conditions) {
+  HRESULT hr = E_FAIL;
+
+  if (g_mEffects.find(Effects::Type::Inertia) != g_mEffects.end()) {
+    LPDIRECTINPUTEFFECT pEffect = g_mEffects[Effects::Type::Inertia];
+
+    int axisCount = (int)g_vDeviceAxes.size();
+
+    DIEFFECT effect = g_mDIEFFECTs[Effects::Type::Inertia];
+    effect.cAxes = axisCount;
+    effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
+    for (int i = 0; i < axisCount; i++) {
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lOffset = conditions[i].lOffset;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lPositiveCoefficient = conditions[i].lPositiveCoefficient;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lNegativeCoefficient = conditions[i].lNegativeCoefficient;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].dwPositiveSaturation = conditions[i].dwPositiveSaturation;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].dwNegativeSaturation = conditions[i].dwNegativeSaturation;
+      ((DICONDITION*)effect.lpvTypeSpecificParams)[i].lDeadBand = conditions[i].lDeadBand;
+    }
+
+    hr = pEffect->SetParameters(&effect, DIEP_DIRECTION | DIEP_TYPESPECIFICPARAMS | DIEP_START);
+  }
+
+  return hr;
+}
+
+/**
+ * Updates the Inertia effect. LONG in range -10,000 to 10,000
+ */
+HRESULT UpdateInertia(LONG Magnitude) {
+  HRESULT hr = E_FAIL;
+
+  if (g_mEffects.find(Effects::Type::Inertia) != g_mEffects.end()) {
+    LPDIRECTINPUTEFFECT pEffect = g_mEffects[Effects::Type::Inertia];
+
+    int axisCount = (int)g_vDeviceAxes.size();
+
+    DIEFFECT effect = g_mDIEFFECTs[Effects::Type::Inertia];
     effect.cAxes = axisCount;
     effect.cbTypeSpecificParams = sizeof(DICONDITION) * axisCount;
     for (int i = 0; i < axisCount; i++) {

@@ -70,6 +70,7 @@ extern "C"
    UNITYDIRECTINPTFFB_API DeviceAxisInfo* EnumerateFFBAxes(int &axisCount);
    UNITYDIRECTINPTFFB_API HRESULT         CreateFFBDevice(LPCSTR guidInstance);
    UNITYDIRECTINPTFFB_API HRESULT         AddFFBEffect(Effects::Type effectType);
+   UNITYDIRECTINPTFFB_API HRESULT         RemoveFFBEffect(Effects::Type effectType);
    UNITYDIRECTINPTFFB_API HRESULT         UpdateEffectGain(Effects::Type effectType, float gainPercent);
    UNITYDIRECTINPTFFB_API HRESULT         GetDeviceState(DIJOYSTATE2 &m_deviceState);
    UNITYDIRECTINPTFFB_API HRESULT         UpdateConstantForce(LONG magnitude, LONG* directions);
@@ -77,6 +78,10 @@ extern "C"
    UNITYDIRECTINPTFFB_API HRESULT         UpdateSpring(LONG Offset, LONG Coeff, LONG Saturation);
    UNITYDIRECTINPTFFB_API HRESULT         UpdateDamperRaw(DICONDITION* conditions);
    UNITYDIRECTINPTFFB_API HRESULT         UpdateDamper(LONG Magnitude);
+   UNITYDIRECTINPTFFB_API HRESULT         UpdateFrictionRaw(DICONDITION* conditions);
+   UNITYDIRECTINPTFFB_API HRESULT         UpdateFriction(LONG Magnitude);
+   UNITYDIRECTINPTFFB_API HRESULT         UpdateInertiaRaw(DICONDITION* conditions);
+   UNITYDIRECTINPTFFB_API HRESULT         UpdateInertia(LONG Magnitude);
    UNITYDIRECTINPTFFB_API HRESULT         SetAutoCenter(bool autoCenter);
    UNITYDIRECTINPTFFB_API void            StartAllFFBEffects();
    UNITYDIRECTINPTFFB_API void            StopAllFFBEffects();
