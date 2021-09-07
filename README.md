@@ -1,3 +1,10 @@
+# This repository has been superseded, find the new repository [here](https://github.com/MrTimcakes/Unity-DirectInput)
+
+&nbsp;
+
+<details>
+  <summary markdown="span">View Legacy README</summary>
+
 # Unity DirectInput Force Feedback
 <!-- [![Version](https://img.shields.io/VERSIONPLATFORM/MrTimcakes/XXXXXXX.svg?style=flat-square)](LINK TO UNITY HERE) -->
 
@@ -67,3 +74,5 @@ If you're having any problem, please [raise an issue](https://github.com/MrTimca
 ## License
 
 This repo is a Fork of [Unity-FFB](https://github.com/skaughtx0r/unity-ffb) and thus is released under the MIT License, further information can be found under the terms specified in the [license](https://github.com/MrTimcakes/Unity-DirectInputFFB/blob/master/LICENSE).
+  
+</details>
